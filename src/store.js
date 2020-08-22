@@ -3,7 +3,14 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import marked from './utils/marked'
 import highlight from './utils/highlight'
-import {getFilenameByPath, getFileUrl, isExternalLink, inBrowser} from './utils'
+import {
+  getFilenameByPath,
+  getFileUrl,
+  isExternalLink,
+  inBrowser,
+  removeOverrideInPath,
+  getCurrentOverrideByPath
+} from './utils'
 import markedRenderer from './utils/markedRenderer'
 import hooks from './hooks'
 import load from './utils/load'
@@ -32,6 +39,7 @@ const getDefaultTheme = (store, {theme, detectSystemDarkTheme}) => {
 const store = new Vuex.Store({
   state: {
     originalConfig: {},
+    nav: [],
     page: {
       title: null,
       headings: null,
@@ -39,7 +47,10 @@ const store = new Vuex.Store({
     },
     env: {},
     showSidebar: false,
+    sidebar: [],
     fetchingFile: true,
+    path: '/',
+    currentOverride: '/',
     ...initialState
   },
 
@@ -52,6 +63,13 @@ const store = new Vuex.Store({
       }
       config.theme = getDefaultTheme(store, config)
       state.originalConfig = config
+      if (config.nav) {
+        state.nav = config.nav
+      }
+    },
+
+    SET_SIDEBAR(state, sidebar = []) {
+      state.sidebar = sidebar
     },
 
     SET_PAGE(state, page) {
@@ -72,6 +90,11 @@ const store = new Vuex.Store({
 
     SET_THEME(state, theme) {
       state.originalConfig.theme = theme
+    },
+
+    SET_PATH(state, path) {
+      state.path = removeOverrideInPath(path)
+      state.currentOverride = getCurrentOverrideByPath(path)
     }
   },
 
@@ -86,6 +109,7 @@ const store = new Vuex.Store({
       }
 
       if (!page.content && !page.file) {
+        path = removeOverrideInPath(path)
         const filename = getFilenameByPath(path)
         page.file = getFileUrl(getters.config.sourcePath, filename)
         page.editLink =
@@ -128,6 +152,21 @@ const store = new Vuex.Store({
       commit('SET_FETCHING', false)
     },
 
+    async fetchSidebar({getters, commit}) {
+      if (getters.config.sidebarLink) {
+        let file = getters.config.sidebarLink.replace(/^\/?/, '/')
+        file = getFileUrl(getters.config.sourcePath, file)
+        getters.config.sidebar = await fetch(file, getters.config.fetchOptions)
+          .then(res => res.text())
+          .then(res => JSON.parse(res))
+        commit('SET_SIDEBAR', getters.config.sidebar)
+      }
+    },
+
+    setPath({commit}, routerPath) {
+      commit('SET_PATH', routerPath)
+    },
+
     fetchPrismLanguages({getters}) {
       const langs = getters.config.highlight
 
@@ -166,6 +205,18 @@ const store = new Vuex.Store({
       return target
     },
 
+    overrides({originalConfig}) {
+      // `locales` is for legacy support
+      const overrides = originalConfig.overrides || originalConfig.locales
+      return (
+        overrides &&
+        Object.keys(overrides).reduce((res, path) => {
+          res[path] = overrides[path]
+          return res
+        }, {})
+      )
+    },
+
     languageOverrides({originalConfig}) {
       // `locales` is for legacy support
       const overrides = originalConfig.overrides || originalConfig.locales
@@ -180,27 +231,15 @@ const store = new Vuex.Store({
       )
     },
 
-    currentLocalePath({route}, {languageOverrides}) {
-      if (languageOverrides) {
-        // Is it a locale?
-        for (const localePath of Object.keys(languageOverrides)) {
-          if (localePath !== '/') {
-            const RE = new RegExp(`^${localePath}`)
-            if (RE.test(route.path)) {
-              return localePath
-            }
-          }
-        }
-      }
-
-      return '/'
+    currentLocalePath({currentOverride}) {
+      return currentOverride
     },
 
-    config({originalConfig}, {currentLocalePath, languageOverrides}) {
-      return languageOverrides
+    config({originalConfig}, {currentLocalePath, overrides}) {
+      return overrides
         ? {
             ...originalConfig,
-            ...languageOverrides[currentLocalePath]
+            ...overrides[currentLocalePath]
           }
         : originalConfig
     },

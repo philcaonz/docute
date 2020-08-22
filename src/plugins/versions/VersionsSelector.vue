@@ -9,8 +9,8 @@
       <option
         v-for="(version, key) in $store.getters.config.versions"
         :key="key"
-        :value="version.link"
-        :selected="value === version.link"
+        :value="getLink(version)"
+        :selected="value === getLink(version)"
       >
         {{ key }}
       </option>
@@ -29,16 +29,30 @@ export default {
       } else {
         this.$router.push(link)
       }
+    },
+
+    getLink(version) {
+      if (version.link) {
+        return version.link
+      }
+
+      if (version.override !== '') {
+        return '/' + version.override + '/-/'
+      }
+
+      return '/'
     }
   },
 
   computed: {
     currentVersionLink() {
       const {versions} = this.$store.getters.config
-      for (const version of Object.keys(versions)) {
-        const {link} = versions[version]
-        if (link !== '/' && this.$route.path.startsWith(link)) {
-          return link
+      const currentVersion = this.$store.state.currentOverride
+
+      for (const versionName of Object.keys(versions)) {
+        const version = versions[versionName]
+        if (version.override === currentVersion) {
+          return this.getLink(version)
         }
       }
       return '/'

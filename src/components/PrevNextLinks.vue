@@ -22,7 +22,7 @@ export default {
     ...mapGetters(['sidebarLinks']),
 
     currentLink() {
-      return this.$route.path
+      return this.$store.state.path
     },
 
     currentLinkIndex() {

@@ -31,7 +31,7 @@ export default {
 
   methods: {
     handleChange(localePath) {
-      const exactPath = this.$route.path.replace(
+      const exactPath = this.$store.state.path.replace(
         new RegExp(`^${this.$store.getters.currentLocalePath}`),
         localePath
       )

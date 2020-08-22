@@ -123,7 +123,8 @@ export default {
 
   methods: {
     async fetchFile(path) {
-      await this.$store.dispatch('fetchFile', path)
+      await this.$store.dispatch('setPath', path)
+      await this.$store.dispatch('fetchFile', this.$store.state.path)
       hooks.invoke('onContentWillUpdate', this)
       await this.$nextTick()
       hooks.invoke('onContentUpdated', this)

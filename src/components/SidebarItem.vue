@@ -25,9 +25,9 @@
     </div>
     <uni-link
       class="ItemLink"
-      :class="{active: $route.path === item.link}"
+      :class="{active: $store.state.path === item.link}"
       v-if="item.title && item.link"
-      :to="item.link"
+      :to="getLink(item.link)"
       >{{ item.title }}</uni-link
     >
     <div class="ItemLinkToc" v-if="item.title && item.link">
@@ -41,8 +41,8 @@
       <div class="ItemChild" v-for="(link, index) of children" :key="index">
         <uni-link
           class="ItemChildLink"
-          :class="{active: $route.path === link.link}"
-          :to="link.link"
+          :class="{active: $store.state.path === link.link}"
+          :to="getLink(link.link)"
           :openInNewTab="link.openInNewTab"
           :prefetchFiles="getPrefetchFiles(link.link)"
           >{{ link.title }}</uni-link
@@ -103,6 +103,14 @@ export default {
         return '_self'
       }
       return '_blank'
+    },
+
+    getLink(link) {
+      if (!isExternalLink(link)) {
+        return '/' + this.$store.state.currentOverride + '/-' + link
+      }
+
+      return link
     }
   }
 }

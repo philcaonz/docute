@@ -38,4 +38,22 @@ export const getFilenameByPath = path => {
   return path
 }
 
+export const getCurrentOverrideByPath = path => {
+  path = path.replace(/^\/?/, '')
+
+  const index = path.indexOf('/-')
+  if (index !== -1) {
+    return path.substring(0, index)
+  }
+  return ''
+}
+
+export const removeOverrideInPath = path => {
+  const index = path.indexOf('/-')
+  if (index === -1) {
+    return path
+  }
+  return path.substr(index + 2)
+}
+
 export const inBrowser = typeof window !== 'undefined'

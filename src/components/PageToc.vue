@@ -4,7 +4,7 @@
     v-if="
       !$store.state.fetchingFile &&
         link.toc !== false &&
-        link.link === $route.path &&
+        link.link === $store.state.path &&
         $store.state.page.headings &&
         $store.state.page.headings.length > 0
     "

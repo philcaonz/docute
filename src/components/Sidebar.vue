@@ -11,7 +11,7 @@
 
     <div class="SidebarItems">
       <sidebar-item
-        v-for="(item, index) in $store.getters.sidebar"
+        v-for="(item, index) in sideBar"
         :key="index"
         :item="item"
         :open="closedItems.indexOf(index) === -1"
@@ -33,21 +33,41 @@ export default {
     HeaderNav,
     SidebarItem
   },
+  mounted() {
+    this.fetchSidebar()
+  },
   data() {
     return {
       closedItems: []
     }
   },
   watch: {
-    '$route.path': {
+    '$store.state.path': {
       handler() {
         const index = this.getCurrentIndex(
-          this.$route.path,
+          this.$store.state.path,
           this.$store.getters.sidebar
         )
         this.openItem(index)
       },
       immediate: true
+    },
+    '$store.state.sidebar': {
+      handler() {
+        this.closedItems = []
+      },
+      immediate: true
+    },
+    '$store.state.currentOverride': {
+      handler() {
+        this.fetchSidebar()
+      },
+      immediate: true
+    }
+  },
+  computed: {
+    sideBar() {
+      return this.$store.state.sidebar
     }
   },
   methods: {
@@ -77,6 +97,9 @@ export default {
     },
     getChildren(item) {
       return item.children || item.links || []
+    },
+    async fetchSidebar() {
+      await this.$store.dispatch('fetchSidebar')
     }
   }
 }

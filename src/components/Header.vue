@@ -31,7 +31,7 @@ export default {
 
   computed: {
     leftNav() {
-      const {nav} = this.$store.getters.config
+      const {nav} = this.$store.state
       return (
         nav &&
         nav.filter(item => {
@@ -41,7 +41,7 @@ export default {
     },
 
     rightNav() {
-      const {nav} = this.$store.getters.config
+      const {nav} = this.$store.state
       return (
         nav &&
         nav.filter(item => {

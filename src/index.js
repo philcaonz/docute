@@ -16,7 +16,6 @@ import ExternalLinkIcon from './components/icons/ExternalLinkIcon.vue'
 import {INITIAL_STATE_NAME} from './utils/constants'
 
 // Built-in plugins
-import i18nPlugin from './plugins/i18n'
 import evaluateContentPlugin from './plugins/evaluateContent'
 import versionsPlugin from './plugins/versions'
 import bannerFooter from './plugins/banner-footer'
@@ -55,7 +54,6 @@ class Docute {
     })
 
     const plugins = [
-      i18nPlugin,
       evaluateContentPlugin,
       versionsPlugin,
       bannerFooter,
